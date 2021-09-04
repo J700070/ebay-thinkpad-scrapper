@@ -1,18 +1,3 @@
-/* 
-1. Conseguir lista de todos los resultados
-2. Conseguir nombre, precio, gastos de envio, fecha de entrega, estado, vostos positivos del vendedor (%), número de votos,
- specs: modelo, procesador, ssd, hdd, tamaño pantalla, ram,  
-
-
-
- Ciclo de vida:
-    loop páginas 1-50:
-        loop items 1-200:
-            => Entrar al objeto => Determianar si es puja o venta => Recopilar información => Escribir en una fila de excel?
-
-
-*/
-
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
@@ -88,7 +73,8 @@ async function run() {
                         numberOfVotes = document.querySelector('.mbg-l > a:nth-child(1)').innerText;
                         percentageOfVotes = document.querySelector('#si-fb').innerText;
                     }
-                    getDataFromTitle(name);
+                    //EXPAND HERE TO EXTRACT ADDITIONAL INFO
+                    //getDataFromTitle(name);
                     return { type, name, price, shippingCost, arrivalDate, state, numberOfVotes, percentageOfVotes };
                 });
                 console.log(result);
@@ -117,21 +103,22 @@ function getDataFromTitle(name) {
     for (let i = 0; i < words.length; i++) {
         //We convert to lower case
         let word = words[i].toLocaleLowerCase()
-        //Eliminar datos innecesarios:
-        //Palabra "laptop"
+        //Delete unnecesary data:
+        //Word: "laptop"
         if (word.includes('portátil') || word.includes('portatil') || words[i].includes('laptop'))
             words[i] = '';
 
-        //Palabra "thinkpad"
+        //Word: "thinkpad"
         if (words[i].includes('thinkpad') || words[i].includes('think') || words[i].includes('pad'))
             words[i] = '';
 
-        //Palabra "ordenador"
+        //Word: "ordenador"
         if (words[i].includes('ordenador') || words[i].includes('computer') || words[i].includes('computadora'))
             words[i] = '';
 
+        //EXPAND HERE TO EXTRACT ADDITIONAL INFO
     }
-    console.log(words);
+
 }
 
 run();
