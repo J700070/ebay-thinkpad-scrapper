@@ -1,6 +1,6 @@
 /* 
 1. Conseguir lista de todos los resultados
-2. Conseguir nombre, precio, gastos de envio => estado, vostos positivos del vendedor (%), número de votos,
+2. Conseguir nombre, precio, gastos de envio, fecha de entrega, estado, vostos positivos del vendedor (%), número de votos,
  specs: modelo, procesador, ssd, hdd, tamaño pantalla, ram,  
 
 
@@ -8,7 +8,7 @@
  Ciclo de vida:
     loop páginas 1-50:
         loop items 1-200:
-            => Entrar al objeto => Recopilar información => Escribir en una fila de excel?
+            => Entrar al objeto => Determianar si es puja o venta => Recopilar información => Escribir en una fila de excel?
 
 
 */
@@ -23,7 +23,7 @@ const elementsToClickSelector = '.s-item__title';
 
 async function run() {
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         ignoreHTTPSErrors: true,
         slowMo: 0,
         args: ['--window-size=1400,900',
@@ -53,12 +53,27 @@ async function run() {
             // Get data from page
             try {
                 const result = await page.evaluate(() => {
+                    //Auction?
+
+                    //Evaluation for auction
+
+
+                    //Evaluation for non-auction
+                    let name = document.querySelector('#itemTitle').innerText;
+                    name = name.replace('Detalles de  \n', '');
+                    name = name.replace('- ver título original', '');
                     let price = document.querySelector('#prcIsum').innerText;
-                    return { price };
+                    let shippingCost = document.querySelector('#fshippingCost > span:nth-child(1)').innerText;
+                    let arrivalDate = document.querySelector('#delSummary > div:nth-child(1) > span:nth-child(1) > b:nth-child(1)').innerText;
+                    let state = document.querySelector('#vi-itm-cond').innerText;
+                    let numberOfVotes = document.querySelector('.mbg-l > a:nth-child(1)').innerText;
+                    let percentageOfVotes = document.querySelector('#si-fb').innerText;
+
+                    return { name, price, shippingCost, arrivalDate, state, numberOfVotes, percentageOfVotes };
                 });
                 console.log(result);
             } catch {
-                console.log("No se ha podido coger datos.")
+                console.log("No se ha podido coger datos.");
             }
 
             // We go back and get again the elements
