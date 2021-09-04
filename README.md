@@ -4,7 +4,7 @@ Search all ThinkPad eBay pages, get relevant data, compute the data and get a re
 
 ### Obtaining data
 
-Input url must be a search url, you can customize the products you search by customizing the query with ebay options and then using that url.
+The input url must be a search url, you can customize the products you search by customizing the query with ebay options and then using that url.
 
 ### Computing data
 
