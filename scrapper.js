@@ -16,14 +16,13 @@
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
-const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker')
-puppeteer.use(AdblockerPlugin({ blockTrackers: true }))
+
 
 const elementsToClickSelector = '.s-item__title';
 
 async function run() {
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         ignoreHTTPSErrors: true,
         slowMo: 0,
         args: ['--window-size=1400,900',
@@ -34,7 +33,7 @@ async function run() {
     });
 
     const page = await browser.newPage();
-
+    await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
     for (let i = 1; i < 50; i++) {
         await page.goto('https://www.ebay.es/sch/i.html?_from=R40&_nkw=thinkpad&_sacat=175672&_ipg=200&_pgn=' + i + '&rt=nc', {
             waitUntil: 'networkidle2',
@@ -48,28 +47,49 @@ async function run() {
         for (let j = 0; j < elementsToClick.length; j++) {
             //Click element
             elementsToClick[j].click();
-            await page.waitForTimeout(2000);
+            await page.waitForTimeout(4000);
 
             // Get data from page
             try {
                 const result = await page.evaluate(() => {
-                    //Auction?
+                    let type = "";
+                    let name = "";
+                    let price = "";
+                    let shippingCost = "";
+                    let arrivalDate = "";
+                    let state = "";
+                    let numberOfVotes = "";
+                    let percentageOfVotes = "";
 
-                    //Evaluation for auction
 
-
-                    //Evaluation for non-auction
-                    let name = document.querySelector('#itemTitle').innerText;
-                    name = name.replace('Detalles de  \n', '');
-                    name = name.replace('- ver título original', '');
-                    let price = document.querySelector('#prcIsum').innerText;
-                    let shippingCost = document.querySelector('#fshippingCost > span:nth-child(1)').innerText;
-                    let arrivalDate = document.querySelector('#delSummary > div:nth-child(1) > span:nth-child(1) > b:nth-child(1)').innerText;
-                    let state = document.querySelector('#vi-itm-cond').innerText;
-                    let numberOfVotes = document.querySelector('.mbg-l > a:nth-child(1)').innerText;
-                    let percentageOfVotes = document.querySelector('#si-fb').innerText;
-
-                    return { name, price, shippingCost, arrivalDate, state, numberOfVotes, percentageOfVotes };
+                    //Is an Auction?
+                    if (document.querySelector('#prcIsum_bidPrice') != null) {
+                        //Evaluation for auction
+                        type = "Auction";
+                        name = document.querySelector('#itemTitle').innerText;
+                        name = name.replace('Detalles de  \n', '');
+                        name = name.replace('- ver título original', '');
+                        price = document.querySelector('#prcIsum_bidPrice').innerText;
+                        shippingCost = document.querySelector('#fshippingCost > span:nth-child(1)').innerText;
+                        arrivalDate = document.querySelector('#delSummary > div:nth-child(1) > span:nth-child(1) > b:nth-child(1)').innerText;
+                        state = document.querySelector('#vi-itm-cond').innerText;
+                        numberOfVotes = document.querySelector('.mbg-l > a:nth-child(1)').innerText;
+                        percentageOfVotes = document.querySelector('#si-fb').innerText;
+                    } else {
+                        //Evaluation for non-auction
+                        type = "Non-Auction";
+                        name = document.querySelector('#itemTitle').innerText;
+                        name = name.replace('Detalles de  \n', '');
+                        name = name.replace('- ver título original', '');
+                        price = document.querySelector('#prcIsum').innerText;
+                        shippingCost = document.querySelector('#fshippingCost > span:nth-child(1)').innerText;
+                        arrivalDate = document.querySelector('#delSummary > div:nth-child(1) > span:nth-child(1) > b:nth-child(1)').innerText;
+                        state = document.querySelector('#vi-itm-cond').innerText;
+                        numberOfVotes = document.querySelector('.mbg-l > a:nth-child(1)').innerText;
+                        percentageOfVotes = document.querySelector('#si-fb').innerText;
+                    }
+                    getDataFromTitle(name);
+                    return { type, name, price, shippingCost, arrivalDate, state, numberOfVotes, percentageOfVotes };
                 });
                 console.log(result);
             } catch {
@@ -83,58 +103,35 @@ async function run() {
             await page.waitForSelector(elementsToClickSelector).then(() => /* console.log(`Elements to click: ${elementsToClick.length}`) */ { });
         }
 
-
-
-        /* elements.forEach(async (element) => {
-            if (element != undefined) {
-                await element.click().then();
-                await page.evaluate(() => {
-                    return document.querySelector('#prcIsum').textContent;
-                }).then(page.goBack());
-            }
-     
-        }); */
-
-        /* if (element !== undefined) {
-            try {
-                await element.click();
-                let test = await page.$('#prcIsum')
-                console.log(test);
-                // Get the data you want here and push it into the data array
-                await page.goBack();
-            } catch {
-                console.log("No se ha podido obtener información.")
-            }
-        } */
-
-
-
-        /* let list = await page.evaluate(() => {
-            let elementNames = document.getElementsByClassName('s-item__title');
-     
-            let names = [];
-     
-            for (j = 0; j < elementNames.length; j++) {
-                if ((elementNames[j].innerText) != '') {
-                    elementNames[j].click();
-     
-     
-     
-     
-     
-                }
-                  names[j] = (elementNames[j].innerText); 
-            }
-            return names;
-        }); */
-
-
         console.log("Página: " + i)
         console.log(pepe);
     }
 
-
-
     await browser.close();
 };
+
+function getDataFromTitle(name) {
+    //Break name into words
+    var words = name.split(" ");
+
+    for (let i = 0; i < words.length; i++) {
+        //We convert to lower case
+        let word = words[i].toLocaleLowerCase()
+        //Eliminar datos innecesarios:
+        //Palabra "laptop"
+        if (word.includes('portátil') || word.includes('portatil') || words[i].includes('laptop'))
+            words[i] = '';
+
+        //Palabra "thinkpad"
+        if (words[i].includes('thinkpad') || words[i].includes('think') || words[i].includes('pad'))
+            words[i] = '';
+
+        //Palabra "ordenador"
+        if (words[i].includes('ordenador') || words[i].includes('computer') || words[i].includes('computadora'))
+            words[i] = '';
+
+    }
+    console.log(words);
+}
+
 run();
